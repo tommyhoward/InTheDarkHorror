@@ -1,29 +1,48 @@
 extends CharacterBody3D
 
-@onready var nav = $NavigationAgent3D
-var speed = 3.5
-var gravity = 9.8
+@onready var nav: NavigationAgent3D = $NavigationAgent3D
 
-func _process(delta):
+var speed: float = 2.0
+var gravity: float = 20.0 
+
+func _ready():
+
+
+	floor_max_angle = deg_to_rad(45.0) 
+	floor_snap_length = 0.3
+
+
+	nav.path_desired_distance = 0.5
+	nav.target_desired_distance = 0.5
+
+func _physics_process(delta):
+
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 	else:
-		velocity.y -= 2
-		
+
+		velocity.y = -5.0
+
+
 	var next_location = nav.get_next_path_position()
-	var current_location = global_transform.origin
+	var current_location = global_position
 	
-	# 1. Calculate the direction to the next path point
-	var new_velocity = (next_location - current_location).normalized() * speed
+
+	var direction = (next_location - current_location)
+	direction.y = 0 
+	direction = direction.normalized()
 	
-	# 2. Make the character face the direction they are moving
-	if new_velocity.length() > 0.1: # Only rotate if we are actually moving
-		var look_target = current_location + new_velocity
-		look_target.y = current_location.y # Keep the 'look target' at our height so we don't tilt
+
+	velocity.x = direction.x * speed
+	velocity.z = direction.z * speed
+
+
+	if direction.length() > 0.1:
+		var look_target = current_location + direction
 		look_at(look_target, Vector3.UP)
 	
-	velocity = velocity.move_toward(new_velocity, 0.25)
+
 	move_and_slide()
 
-func target_position(target):
+func target_position(target: Vector3):
 	nav.target_position = target
