@@ -1,0 +1,111 @@
+[gd_scene load_steps=11 format=3 uid="uid://djcxkhbimyxb"]
+
+[ext_resource type="Texture2D" uid="uid://cvwn3j7msxfo6" path="res://TEXTURES/RDOOR_1A.PNG" id="1_i3pqv"]
+[ext_resource type="Material" uid="uid://dln0vhp88o0mt" path="res://TEXTURES/CONCRETE_2A.tres" id="1_onrkg"]
+[ext_resource type="Material" uid="uid://sp5675g60tb1" path="res://TEXTURES/RIVET_2A.tres" id="2_i3pqv"]
+
+[sub_resource type="GDScript" id="GDScript_sh265"]
+script/source = "extends CharacterBody3D
+
+const SPEED = 3.0
+const JUMP_VELOCITY = 4.5
+var lightison = false
+
+func _ready():
+	$Camera3D/light/OmniLight3D.visible = lightison
+	$Camera3D/SpotLight3D.visible = lightison
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _input(event):
+	# If the mouse moves, rotate the player left/right and the camera up/down
+	if event is InputEventMouseMotion:
+		rotate_y(-event.relative.x * 0.005)
+		$Camera3D.rotate_x(-event.relative.y * 0.005)
+		$Camera3D.rotation.x = clamp($Camera3D.rotation.x, -1.5, 1.5)
+
+func _physics_process(delta: float) -> void:
+	if not is_on_floor():
+		velocity += get_gravity() * delta
+
+	# Listen for the \"F\" key
+	if Input.is_action_just_pressed(\"f\"):
+		# Switch the variable true/false
+		lightison = !lightison 
+
+		$Camera3D/light/OmniLight3D.visible = lightison
+		$Camera3D/SpotLight3D.visible = lightison
+
+
+	var input_dir := Input.get_vector(\"ui_left\", \"ui_right\", \"ui_up\", \"ui_down\")
+	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	
+	if direction:
+		velocity.x = direction.x * SPEED
+		velocity.z = direction.z * SPEED
+	else:
+		velocity.x = move_toward(velocity.x, 0, SPEED)
+		velocity.z = move_toward(velocity.z, 0, SPEED)
+
+	move_and_slide()
+	
+"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hqtel"]
+albedo_texture = ExtResource("1_i3pqv")
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_4flbx"]
+radial_segments = 16
+rings = 4
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_onrkg"]
+
+[sub_resource type="SeparationRayShape3D" id="SeparationRayShape3D_i3pqv"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hqtel"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_sweqy"]
+
+[node name="Player" type="CharacterBody3D"]
+script = SubResource("GDScript_sh265")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.695497, 0, 0, 0, 1, 0, -0.345545, 0.168374)
+material_override = SubResource("StandardMaterial3D_hqtel")
+mesh = SubResource("CapsuleMesh_4flbx")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.924138, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_onrkg")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -0.361129, 0, 1, -1.57855e-08, 0, -0.750676, -0.834329)
+shape = SubResource("SeparationRayShape3D_i3pqv")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.567878, -0.431631)
+
+[node name="light" type="MeshInstance3D" parent="Camera3D"]
+transform = Transform3D(0.13608, 0, 0, 0, -2.45393e-09, 0.1344, 0, -0.0561395, -5.87481e-09, 0.323947, -0.22708, -0.589486)
+material_override = ExtResource("1_onrkg")
+mesh = SubResource("CylinderMesh_hqtel")
+skeleton = NodePath("")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Camera3D/light"]
+transform = Transform3D(0.6237, 0, 0, 0, 3.2, -4.9738e-14, 0, -2.13163e-14, 0.616, 0, -3.01576, -2.38419e-07)
+material_override = ExtResource("2_i3pqv")
+mesh = SubResource("CylinderMesh_sweqy")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="Camera3D/light"]
+transform = Transform3D(7.34862, 0, 0, 0, 17.8128, -6.25278e-13, 0, 0, 7.44048, -0.82315, -1.31852, 0.587809)
+light_color = Color(1, 1, 0.894118, 1)
+light_energy = 0.05
+light_indirect_energy = 0.1
+light_volumetric_fog_energy = 0.1
+omni_range = 0.288373
+
+[node name="SpotLight3D" type="SpotLight3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, -3.55271e-15, 0, 3.55271e-15, 1, 0.327464, -0.223139, -0.690437)
+light_color = Color(1, 1, 0.894118, 1)
+light_energy = 0.187
+spot_range = 10.0
+spot_angle = 30.0
