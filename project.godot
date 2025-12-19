@@ -13,11 +13,12 @@ config_version=5
 config/name="TrenchBroomTest"
 run/main_scene="uid://b1782ph7d5wvd"
 config/features=PackedStringArray("4.4", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://other random assests/icon.svg"
 
 [autoload]
 
 Global="*res://scripts/Global.gd"
+AudioStreamPlayer2d="*res://scenes/audio_stream_player_2d.tscn"
 
 [display]
 
